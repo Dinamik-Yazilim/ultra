@@ -34,10 +34,10 @@ function connectAsOrganization(dbModel, sessionDoc, req) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!req.params.param2) return reject(`param2 required`)
-      const orgDoc = await dbModel.organizations.findOne({ _id: req.params.param2 })
+      const orgDoc = await dbModel.organizations.findOne({ _id: req.params.param2, partner: sessionDoc.partner })
       if (!orgDoc) return reject(`organization not found`)
       if (orgDoc.passive) return reject(`organization is not active`)
-      sessionDoc.partner = orgDoc.partner
+
       sessionDoc.organization = orgDoc._id
       sessionDoc.save()
         .then(() => {
@@ -56,11 +56,9 @@ function connectAsOrganization(dbModel, sessionDoc, req) {
 
 function getOne(dbModel, sessionDoc, req) {
   return new Promise(async (resolve, reject) => {
-    if (!req.query.partner) return reject('partner is required')
-    const partnerDoc = await dbModel.partners.findOne({ _id: req.query.partner })
-    if (!partnerDoc) return reject(`partner not found`)
+
     dbModel.organizations
-      .findOne({ _id: req.params.param1, partner: partnerDoc._id })
+      .findOne({ _id: req.params.param1, partner: sessionDoc.partner })
       .then(resolve)
       .catch(reject)
   })
@@ -68,16 +66,13 @@ function getOne(dbModel, sessionDoc, req) {
 
 function getList(dbModel, sessionDoc, req) {
   return new Promise(async (resolve, reject) => {
-    if (!req.query.partner) return reject('partner is required')
-    const partnerDoc = await dbModel.partners.findOne({ _id: req.query.partner })
-    if (!partnerDoc) return reject(`partner not found`)
 
     let options = {
       page: req.query.page || 1,
       limit: req.query.pageSize || 10,
       sort: { name: 1 }
     }
-    let filter = { partner: partnerDoc._id }
+    let filter = { partner: sessionDoc.partner }
     if (req.query.passive != undefined) {
       if (req.query.passive.toString() == 'false') filter.passive = false
       if (req.query.passive.toString() == 'true') filter.passive = true
@@ -102,19 +97,14 @@ function post(dbModel, sessionDoc, req) {
 
       let data = req.body || {}
       delete data._id
-      console.log('data:', data)
-      if (!data.partner) return reject(`partner required`)
-
-      const partnerDoc = await dbModel.partners.findOne({ _id: data.partner })
-      if (!partnerDoc) return reject(`partner not found`)
 
       data.name = (data.name || '').toLowerCase().replace(/[^a-z0-9\-\_]/g, '')
       if (!data.name) return reject('name required')
 
-      if (await dbModel.organizations.countDocuments({ partner: partnerDoc._id, name: data.name }) > 0)
+      if (await dbModel.organizations.countDocuments({ partner: sessionDoc.partner, name: data.name }) > 0)
         return reject(`name already exists`)
 
-      data.partner = partnerDoc._id
+      data.partner = sessionDoc.partner
 
       const newDoc = new dbModel.organizations(data)
 
@@ -137,7 +127,7 @@ function put(dbModel, sessionDoc, req) {
       delete data._id
       delete data.partner
 
-      let doc = await dbModel.organizations.findOne({ _id: req.params.param1 })
+      let doc = await dbModel.organizations.findOne({ _id: req.params.param1, partner: sessionDoc.partner })
       if (!doc) return reject(`organization not found`)
       if (data.name) {
         data.name = (data.name || '').toLowerCase().replace(/[^a-z0-9\-\_]/g, '')
@@ -145,7 +135,7 @@ function put(dbModel, sessionDoc, req) {
       }
 
       Object.assign(doc, data)
-      if (await dbModel.organizations.countDocuments({ name: doc.name, partner: doc.partner, _id: { $ne: doc._id } }) > 0)
+      if (await dbModel.organizations.countDocuments({ name: doc.name, partner: sessionDoc.partner, _id: { $ne: doc._id } }) > 0)
         return reject(`name already exists`)
 
       doc.save()
@@ -163,7 +153,7 @@ function deleteItem(dbModel, sessionDoc, req) {
     try {
       if (req.params.param1 == undefined) return restError.param1(req, reject)
 
-      dbModel.organizations.removeOne(sessionDoc, { _id: req.params.param1 })
+      dbModel.organizations.removeOne(sessionDoc, { _id: req.params.param1, partner: sessionDoc.partner })
         .then(resolve)
         .catch(reject)
     } catch (err) {

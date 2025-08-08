@@ -3,7 +3,8 @@ const collectionName = path.basename(__filename, '.collection.js')
 module.exports = function (dbModel) {
   const schema = mongoose.Schema(
     {
-      organization: { type: ObjectId, ref: 'organizations', index: true },
+      partner: { type: ObjectId, ref: 'partners', default: null, index: true },
+      organization: { type: ObjectId, ref: 'organizations', default: null, index: true },
       member: { type: ObjectId, ref: 'members', index: true },
       loginProvider: { type: String, default: 'dinamikup', enum: ['dinamikup', 'google', 'yandex', 'github', 'facebook', 'magiclink', ''] },
       role: { type: String },

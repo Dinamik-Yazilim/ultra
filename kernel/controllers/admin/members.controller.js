@@ -28,7 +28,7 @@ module.exports = (dbModel, sessionDoc, req) =>
 function getOne(dbModel, sessionDoc, req) {
   return new Promise((resolve, reject) => {
     dbModel.members
-      .findOne({ organization: null, _id: req.params.param1 })
+      .findOne({ organization: null, partner: null, _id: req.params.param1 })
       .then(resolve)
       .catch(reject)
   })
@@ -41,7 +41,7 @@ function getList(dbModel, sessionDoc, req) {
       limit: req.query.pageSize || 10,
       sort: { name: 1 }
     }
-    let filter = { organization: null }
+    let filter = { organization: null, partner: null }
     if (req.query.passive != undefined) {
       if (req.query.passive.toString() == 'false') filter.passive = false
       if (req.query.passive.toString() == 'true') filter.passive = true
@@ -75,7 +75,7 @@ function post(dbModel, sessionDoc, req) {
       if (!(data.username.includes('@') || !isNaN(data.username))) {
         return reject(`wrong username`)
       }
-      if (await dbModel.members.countDocuments({ organization: null, username: data.username }) > 0)
+      if (await dbModel.members.countDocuments({ organization: null, partner: null, username: data.username }) > 0)
         return reject(`username already exists`)
 
       data.organization = null
@@ -99,13 +99,13 @@ function put(dbModel, sessionDoc, req) {
       let data = req.body || {}
       delete data._id
 
-      let doc = await dbModel.members.findOne({ organization: null, _id: req.params.param1 })
+      let doc = await dbModel.members.findOne({ organization: null, partner: null, _id: req.params.param1 })
       if (!doc) return reject(`member not found`)
 
       data.organization = null
       doc = Object.assign(doc, data)
 
-      if (await dbModel.members.countDocuments({ organization: null, username: doc.username, _id: { $ne: doc._id } }) > 0)
+      if (await dbModel.members.countDocuments({ organization: null, partner: null, username: doc.username, _id: { $ne: doc._id } }) > 0)
         return reject(`username already exists`)
 
       doc.save()
@@ -123,7 +123,7 @@ function deleteItem(dbModel, sessionDoc, req) {
     try {
       if (req.params.param1 == undefined) return restError.param1(req, reject)
       if (sessionDoc.member == req.params.param1) return reject(`you can not delete yourself`)
-      dbModel.members.removeOne(sessionDoc, { organization: sessionDoc.organization, _id: req.params.param1 })
+      dbModel.members.removeOne(sessionDoc, { organization: null, partner: null, _id: req.params.param1 })
         .then(resolve)
         .catch(reject)
     } catch (err) {

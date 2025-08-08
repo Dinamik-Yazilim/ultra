@@ -1,6 +1,6 @@
 const auth = require('../../lib/auth')
 const { ObjectId } = require('mongodb')
-exports.saveSession = async function (organizationDoc, memberDoc, req, loginProvider = 'dinamikup', oauth2 = null) {
+exports.saveSession = async function (partnerDoc, orgDoc, memberDoc, req, loginProvider = 'dinamikup', oauth2 = null) {
 	let deviceId = req.getValue('deviceId') || ''
 	let lang = req.getValue('lang') || ''
 	let oldSessions = []
@@ -34,7 +34,8 @@ exports.saveSession = async function (organizationDoc, memberDoc, req, loginProv
 				oldDbId = dbList[0]._id
 			}
 			let sessionDoc = new db.sessions({
-				organization: organizationDoc._id,
+				partner: partnerDoc ? partnerDoc._id : null,
+				organization: orgDoc ? orgDoc._id : null,
 				member: memberDoc._id,
 				loginProvider: loginProvider,
 				role: memberDoc.role,

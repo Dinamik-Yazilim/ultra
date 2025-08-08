@@ -1,4 +1,4 @@
-module.exports = (dbModel, sessionDoc, req, orgDoc) =>
+module.exports = (dbModel, sessionDoc, req) =>
   new Promise(async (resolve, reject) => {
 
     switch (req.method.toUpperCase()) {
@@ -27,12 +27,8 @@ module.exports = (dbModel, sessionDoc, req, orgDoc) =>
 
 function getOne(dbModel, sessionDoc, req) {
   return new Promise((resolve, reject) => {
-    dbModel.storePosComputers
-      .findOne({ _id: req.params.param1, organization: sessionDoc.organization, db: sessionDoc.db })
-      .populate([{
-        path: 'store',
-        select: '_id name'
-      }])
+    dbModel.members
+      .findOne({ organization: null, partner: sessionDoc.partner, _id: req.params.param1 })
       .then(resolve)
       .catch(reject)
   })
@@ -43,27 +39,25 @@ function getList(dbModel, sessionDoc, req) {
     let options = {
       page: req.query.page || 1,
       limit: req.query.pageSize || 10,
-      sort: { name: 1 },
-      populate: [{
-        path: 'store',
-        select: '_id name'
-      }]
+      sort: { name: 1 }
     }
-    let filter = { organization: sessionDoc.organization, db: sessionDoc.db }
+    let filter = { organization: null, partner: sessionDoc.partner }
     if (req.query.passive != undefined) {
       if (req.query.passive.toString() == 'false') filter.passive = false
       if (req.query.passive.toString() == 'true') filter.passive = true
     }
-    if (req.query.store) {
-      filter.store = req.query.store
+    if (req.query.role) {
+      filter.role = req.query.role
     }
+
     if (req.query.name || req.query.username || req.query.search) {
       filter.$or = [
+        { username: { $regex: `.*${req.query.username || req.query.search}.*`, $options: 'i' } },
         { name: { $regex: `.*${req.query.name || req.query.search}.*`, $options: 'i' } }
       ]
 
     }
-    dbModel.storePosComputers
+    dbModel.members
       .paginate(filter, options)
       .then(resolve).catch(reject)
   })
@@ -75,19 +69,17 @@ function post(dbModel, sessionDoc, req) {
 
       let data = req.body || {}
       delete data._id
-      if (!data.store) return reject('store required')
-      if (!data.name) return reject('name required')
-      console.log(`data.store`, data.store)
-      const storeDoc = await db.stores.findOne({ organization: sessionDoc.organization, db: sessionDoc.db, _id: data.store })
-      if (!storeDoc) return reject(`store not found`)
+      if (!data.role) return reject('role required')
+      if (!data.username) return reject('username required')
 
-      if (await dbModel.storePosComputers.countDocuments({ organization: sessionDoc.organization, db: sessionDoc.db, store: storeDoc._id, name: data.name }) > 0)
-        return reject(`name already exists`)
+      if (!(data.username.includes('@') || !isNaN(data.username))) {
+        return reject(`wrong username`)
+      }
+      if (await dbModel.members.countDocuments({ organization: null, partner: sessionDoc.partner, username: data.username }) > 0)
+        return reject(`username already exists`)
 
-      data.organization = sessionDoc.organization
-      data.db = sessionDoc.db
-      data.store = storeDoc._id
-      const newDoc = new dbModel.storePosComputers(data)
+      data.organization = null
+      const newDoc = new dbModel.members(data)
 
       newDoc.save()
         .then(resolve)
@@ -107,25 +99,18 @@ function put(dbModel, sessionDoc, req) {
       let data = req.body || {}
       delete data._id
 
-      let doc = await dbModel.storePosComputers.findOne({ organization: sessionDoc.organization, db: sessionDoc.db, _id: req.params.param1 })
-      if (!doc) return reject(`pos computer not found`)
+      let doc = await dbModel.members.findOne({ organization: null, partner: sessionDoc.partner, _id: req.params.param1 })
+      if (!doc) return reject(`member not found`)
 
-      const storeDoc = await db.stores.findOne({ organization: sessionDoc.organization, db: sessionDoc.db, _id: doc.store })
-      if (!storeDoc) return reject(`store not found`)
-
-      data.organization = sessionDoc.organization
-      data.db = sessionDoc.db
-      data.store = storeDoc._id
-
+      data.organization = null
       doc = Object.assign(doc, data)
 
-      if (await dbModel.storePosComputers.countDocuments({ organization: sessionDoc.organization, db: doc.db, store: storeDoc._id, name: doc.name, _id: { $ne: doc._id } }) > 0)
-        return reject(`name already exists`)
+      if (await dbModel.members.countDocuments({ organization: null, partner: sessionDoc.partner, username: doc.username, _id: { $ne: doc._id } }) > 0)
+        return reject(`username already exists`)
 
       doc.save()
         .then(resolve)
         .catch(reject)
-
     } catch (err) {
       reject(err)
     }
@@ -137,7 +122,8 @@ function deleteItem(dbModel, sessionDoc, req) {
   return new Promise(async (resolve, reject) => {
     try {
       if (req.params.param1 == undefined) return restError.param1(req, reject)
-      dbModel.storePosComputers.removeOne(sessionDoc, { organization: sessionDoc.organization, db: sessionDoc.db, _id: req.params.param1 })
+      if (sessionDoc.member == req.params.param1) return reject(`you can not delete yourself`)
+      dbModel.members.removeOne(sessionDoc, { organization: null, partner: sessionDoc.partner, _id: req.params.param1 })
         .then(resolve)
         .catch(reject)
     } catch (err) {

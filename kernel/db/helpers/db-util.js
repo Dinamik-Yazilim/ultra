@@ -134,3 +134,65 @@ exports.connectionString = () => {
 
   return `mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin`
 }
+
+
+
+exports.connectMongoDatabase = function (collectionFolder, mongoAddress, dbObj) {
+  return new Promise((resolve, reject) => {
+    if (collectionFolder && mongoAddress && !dbObj.conn) {
+      exports.collectionLoader(collectionFolder, '.collection.js')
+        .then((holder) => {
+          dbObj.conn = mongoose.createConnection(mongoAddress, { autoIndex: true })
+          dbObj.conn.on('connected', () => {
+            Object.keys(holder).forEach((key) => {
+              dbObj[key] = holder[key](dbObj)
+            })
+            if (dbObj.conn.active != undefined) {
+              eventLog(dbObj.nameLog, 're-connected')
+            } else {
+              eventLog(dbObj.nameLog, mongoAddress, 'connected')
+            }
+            dbObj.conn.active = true
+            resolve(dbObj)
+          })
+
+          dbObj.conn.on('error', (err) => {
+            dbObj.conn.active = false
+            reject(err)
+          })
+
+          dbObj.conn.on('disconnected', () => {
+            dbObj.conn.active = false
+            eventLog(dbObj.nameLog, 'disconnected')
+          })
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    } else {
+      resolve(dbObj)
+    }
+  })
+}
+
+exports.collectionLoader = function (folder, suffix) {
+  return new Promise((resolve, reject) => {
+    try {
+      let collectionHolder = {}
+      let files = fs.readdirSync(folder)
+      files.forEach((e) => {
+        let f = path.join(folder, e)
+        if (!fs.statSync(f).isDirectory()) {
+          let fileName = path.basename(f)
+          let apiName = fileName.substr(0, fileName.length - suffix.length)
+          if (apiName != '' && apiName + suffix == fileName) {
+            collectionHolder[apiName] = require(f)
+          }
+        }
+      })
+      resolve(collectionHolder)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}

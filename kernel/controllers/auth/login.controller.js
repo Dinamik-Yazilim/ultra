@@ -6,8 +6,7 @@ module.exports = (req) =>
       if (req.method != 'POST') return restError.method(req, reject)
 
       let organization = util.fixOrganizationName(req.getValue('organization') || '')
-      let email = null
-      let phoneNumber = null
+      let partner = util.fixOrganizationName(req.getValue('partner') || '')
       let username = req.getValue('username')
 
       if (!username) return reject('username required')
@@ -15,6 +14,12 @@ module.exports = (req) =>
       if (organization) {
         orgDoc = await db.organizations.findOne({ name: organization })
         if (!orgDoc) return reject('organization not found')
+      }
+
+      let partnerDoc = null
+      if (partner) {
+        partnerDoc = await db.partners.findOne({ name: partner })
+        if (!partnerDoc) return reject('partner not found')
       }
 
       username = req.getValue('username')
@@ -26,41 +31,41 @@ module.exports = (req) =>
       } else {
         return reject('username error')
       }
-      let password = req.getValue('password')
       let deviceId = req.getValue('deviceId')
 
-      let memberDoc = null
-      if (orgDoc) {
-        memberDoc = await db.members.findOne({ organization: orgDoc._id, username: username })
-        if (!memberDoc) return reject(`login failed. member not found.`)
-      } else {
-        memberDoc = await db.members.findOne({ organization: null, username: username })
-        if (!memberDoc) return reject(`admin login failed. admin member not found.`)
-        if (!['sysadmin', 'sysuser'].includes(memberDoc.role)) return reject(`permission denied`)
-      }
+      let memberDoc = await db.members.findOne({
+        partner: partnerDoc ? partnerDoc._id : null,
+        organization: orgDoc ? orgDoc._id : null,
+        username: username
+      })
+      if (!memberDoc) return reject(`login failed. member not found.`)
+      if (!memberDoc.organization && !memberDoc.partner && !memberDoc.role.startsWith('sys'))
+        return reject(`permission denied`)
 
       if (memberDoc.passive) return reject(`account is passive. please contact with administrators`)
 
 
-      // TODO: buraya gelecekte saatte istenebilecek veya gunluk istenebilecek sms/email limiti koyalim
-      // TODO: resolve mesaj icindeki authCode bilgileri kaldirilacak.
       let authCodeDoc = await db.authCodes.findOne({
-        organization: orgDoc && orgDoc._id || null,
+        partner: partnerDoc ? partnerDoc._id : null,
+        organization: orgDoc ? orgDoc._id : null,
         username: username,
         deviceId: deviceId,
         verified: false,
         passive: false,
         authCodeExpire: { $gt: new Date() },
       })
+
+
       if (authCodeDoc) {
-        return resolve(`authCode already has been sent. authCode:${authCodeDoc.authCode} username:${authCodeDoc.username}`)
+        return resolve(`authCode already has been sent to username:${authCodeDoc.username}`)
       } else {
         authCodeDoc = new db.authCodes({
-          organization: orgDoc && orgDoc._id || null,
+          partner: partnerDoc ? partnerDoc._id : null,
+          organization: orgDoc ? orgDoc._id : null,
           deviceId: deviceId,
           username: username,
           authCode: util.randomNumber(120000, 980700),
-          authCodeExpire: new Date(new Date().setMinutes(new Date().getMinutes() + 55)), // TODO: 3 dk ya indirilecek. simdilik 55 dk
+          authCodeExpire: new Date(new Date().setMinutes(new Date().getMinutes() + 55)),
         })
         authCodeDoc = await authCodeDoc.save()
       }

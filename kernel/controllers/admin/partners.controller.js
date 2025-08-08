@@ -1,4 +1,4 @@
-module.exports = (dbModel, sessionDoc, req, orgDoc) =>
+module.exports = (dbModel, sessionDoc, req) =>
   new Promise(async (resolve, reject) => {
 
     switch (req.method.toUpperCase()) {
@@ -10,7 +10,11 @@ module.exports = (dbModel, sessionDoc, req, orgDoc) =>
         }
         break
       case 'POST':
-        post(dbModel, sessionDoc, req).then(resolve).catch(reject)
+        if (req.params.param1 == 'connect') {
+          connectAsPartner(dbModel, sessionDoc, req).then(resolve).catch(reject)
+        } else {
+          post(dbModel, sessionDoc, req).then(resolve).catch(reject)
+        }
 
         break
       case 'PUT':
@@ -25,10 +29,33 @@ module.exports = (dbModel, sessionDoc, req, orgDoc) =>
     }
   })
 
+function connectAsPartner(dbModel, sessionDoc, req) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!req.params.param2) return reject(`param2 required`)
+      const partnerDoc = await dbModel.partners.findOne({ _id: req.params.param2 })
+      if (!partnerDoc) return reject(`partner not found`)
+      if (partnerDoc.passive) return reject(`partner is not active`)
+      sessionDoc.partner = partnerDoc._id
+      sessionDoc.save()
+        .then(() => {
+          let obj = partnerDoc.toJSON()
+          delete obj.connector
+          delete obj.settings
+          resolve(obj)
+        })
+        .catch(reject)
+    } catch (err) {
+      reject(err)
+    }
+
+  })
+}
+
 function getOne(dbModel, sessionDoc, req) {
   return new Promise((resolve, reject) => {
-    dbModel.stores
-      .findOne({ _id: req.params.param1, organization: sessionDoc.organization, db: sessionDoc.db })
+    dbModel.partners
+      .findOne({ _id: req.params.param1, partner: sessionDoc.partner })
       .then(resolve)
       .catch(reject)
   })
@@ -41,19 +68,20 @@ function getList(dbModel, sessionDoc, req) {
       limit: req.query.pageSize || 10,
       sort: { name: 1 }
     }
-    let filter = { organization: sessionDoc.organization, db: sessionDoc.db }
+    let filter = {}
     if (req.query.passive != undefined) {
       if (req.query.passive.toString() == 'false') filter.passive = false
       if (req.query.passive.toString() == 'true') filter.passive = true
     }
 
-    if (req.query.name || req.query.username || req.query.search) {
+    if (req.query.name || req.query.search) {
       filter.$or = [
-        { name: { $regex: `.*${req.query.name || req.query.search}.*`, $options: 'i' } }
+        { name: { $regex: `.*${req.query.name || req.query.search}.*`, $options: 'i' } },
+        { location: { $regex: `.*${req.query.name || req.query.search}.*`, $options: 'i' } }
       ]
 
     }
-    dbModel.stores
+    dbModel.partners
       .paginate(filter, options)
       .then(resolve).catch(reject)
   })
@@ -65,16 +93,12 @@ function post(dbModel, sessionDoc, req) {
 
       let data = req.body || {}
       delete data._id
+      data.name = (data.name || '').toLowerCase().replace(/[^a-z0-9\-\_]/g, '')
       if (!data.name) return reject('name required')
-
-
-      if (await dbModel.stores.countDocuments({ organization: sessionDoc.organization, db: sessionDoc.db, name: data.name }) > 0)
+      if (await dbModel.partners.countDocuments({ name: data.name }) > 0)
         return reject(`name already exists`)
 
-      data.organization = sessionDoc.organization
-      data.db = sessionDoc.db
-      const newDoc = new dbModel.stores(data)
-
+      const newDoc = new dbModel.partners(data)
       newDoc.save()
         .then(resolve)
         .catch(reject)
@@ -93,20 +117,20 @@ function put(dbModel, sessionDoc, req) {
       let data = req.body || {}
       delete data._id
 
-      let doc = await dbModel.stores.findOne({ organization: sessionDoc.organization, db: sessionDoc.db, _id: req.params.param1 })
-      if (!doc) return reject(`store not found`)
+      let doc = await dbModel.partners.findOne({ _id: req.params.param1 })
+      if (!doc) return reject(`partner not found`)
+      if (data.name) {
+        data.name = (data.name || '').toLowerCase().replace(/[^a-z0-9\-\_]/g, '')
+        if (!data.name) return reject('name required')
+      }
 
-      data.organization = sessionDoc.organization
-      data.db = sessionDoc.db
-      doc = Object.assign(doc, data)
-
-      if (await dbModel.stores.countDocuments({ organization: sessionDoc.organization, db: doc.db, name: doc.name, _id: { $ne: doc._id } }) > 0)
+      Object.assign(doc, data)
+      if (await dbModel.partners.countDocuments({ name: doc.name, _id: { $ne: doc._id } }) > 0)
         return reject(`name already exists`)
 
       doc.save()
         .then(resolve)
         .catch(reject)
-
     } catch (err) {
       reject(err)
     }
@@ -118,7 +142,8 @@ function deleteItem(dbModel, sessionDoc, req) {
   return new Promise(async (resolve, reject) => {
     try {
       if (req.params.param1 == undefined) return restError.param1(req, reject)
-      dbModel.stores.removeOne(sessionDoc, { organization: sessionDoc.organization, db: sessionDoc.db, _id: req.params.param1 })
+
+      dbModel.partners.removeOne(sessionDoc, { _id: req.params.param1 })
         .then(resolve)
         .catch(reject)
     } catch (err) {
