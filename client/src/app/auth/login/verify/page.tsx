@@ -16,6 +16,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getItem, postItem } from '@/lib/fetch'
 import { useToast } from '@/components/ui/use-toast'
 import Cookies from 'js-cookie'
+import { Member } from '@/types/Member'
 
 export default function VerifyPage() {
   const { t } = useLanguage()
@@ -37,11 +38,19 @@ export default function VerifyPage() {
           Cookies.set('db', result.db)
         }
 
-        console.log('verify result:', result)
         getItem(`/me`, Cookies.get('token') || '')
-          .then(meResult => {
-            Cookies.set('user',JSON.stringify(meResult))
-            router.push('/')
+          .then((meResult: Member) => {
+            Cookies.set('user', JSON.stringify(meResult))
+            if (meResult.organization) {
+              getItem(`/databases`, Cookies.get('token') || '')
+                .then(result => Cookies.set('dbList', JSON.stringify(result)))
+                .catch(err => toast({ title: t('Error'), description: t(err || ''), variant: 'destructive', duration: 1500 }))
+                .finally(()=> router.push('/'))
+            }else{
+               router.push('/')
+            }
+
+           
           })
           .catch(err => toast({ title: t('Error'), description: err, variant: 'destructive' }))
       })
@@ -50,7 +59,7 @@ export default function VerifyPage() {
   return (
     <div className="relative h-full flex flex-col justify-center items-center gap-4">
       <div className="flex justify-center">
-        <HeaderLogo2 className='w-40'/>
+        <HeaderLogo2 className='w-40' />
       </div>
       <div className="flex flex-col justify-between gap-4 w-full h-full  mb-6 text-2xl max-w-[350px] max-h-[240px] rounded-lg border border-dashed border-opacity-50 border-slate-400 p-4">
         <div className="flex flex-col gap-2 items-center">

@@ -194,7 +194,7 @@ export function ListGrid({
                     </div>
                   </>}
 
-                  {options.type == 'Update' && options.showDelete && e._id &&
+                  {options.type == 'Update' && options.showDelete && e._id && 
                     <ButtonConfirm
                       onOk={() => {
                         if (onDelete) {

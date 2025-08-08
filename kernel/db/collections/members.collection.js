@@ -6,7 +6,7 @@ module.exports = function (dbModel) {
       organization: { type: ObjectId, ref: 'organizations', default: null, index: true },
       username: { type: String, required: true, index: true },
       password: { type: String, default: null, index: true, select: false },
-      role: { type: String, default: 'user', enum: ['user', 'admin', 'partner', 'sysadmin', 'sysuser'] },
+      role: { type: String, default: 'user', enum: ['user', 'admin', 'partnerAdmin', 'partnerUser', 'sysadmin', 'sysuser'] },
       name: { type: String, default: '', index: true },
       passive: { type: Boolean, default: false, index: true },
 

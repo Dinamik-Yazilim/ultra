@@ -45,6 +45,8 @@ export interface Connector {
   export function getMainAppList(){
     return [
       {_id:'mikro16', name:'Mikro Version 16'},
+      {_id:'mikro16_workdata', name:'Mikro Version 16 - WorkData'},
       {_id:'mikro17', name:'Mikro Version 17'},
+      {_id:'mikro17_workdata', name:'Mikro Version 17 - WorkData'},
     ] as TsnListType[]
   }

@@ -112,5 +112,9 @@
   "Purchase Report": "Satın Alma Raporu",
   "Sales transfer": "Satış aktarımı",
   "Integration Code": "Entegrasyon Kodu",
-  "Sales Serial":"Satış Seri"
+  "Sales Serial":"Satış Seri",
+  "Location":"Lokasyon",
+  "New Organization":"Yeni Organizasyon",
+  "Edit Organization":"Organizasyon Düzenle",
+  "Do you want to connect to organization?":"Organizasyona bağlanmak istiyor musunuz?"
 }

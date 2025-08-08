@@ -33,6 +33,7 @@ module.exports = (app) => {
 
   authControllers(app, '/api/v1/auth/:func/:param1/:param2/:param3')
   adminControllers(app, '/api/v1/admin/:func/:param1/:param2/:param3')
+  partnerControllers(app, '/api/v1/partner/:func/:param1/:param2/:param3')
   masterControllers(app, '/api/v1/:func/:param1/:param2/:param3')
 
 
@@ -136,6 +137,38 @@ function adminControllers(app, route) {
   })
 }
 
+function partnerControllers(app, route) {
+  setRoutes(app, route, (req, res, next) => {
+    try {
+
+      const ctl = getController('/partner', req.params.func)
+      if (ctl) {
+        passport(req)
+          .then(async (sessionDoc) => {
+            const memberDoc = await db.members.findOne({ _id: sessionDoc.member })
+            if (!(memberDoc.role.startsWith('partner') || memberDoc.role.startsWith('sys'))) {
+              return reject(`partner authorization failed`)
+            }
+            ctl(db, sessionDoc, req)
+              .then((data) => {
+                if (data == undefined) res.json({ success: true })
+                else if (data == null) res.json({ success: true })
+                else {
+                  res.status(200).json({ success: true, data: data })
+                }
+              })
+              .catch(next)
+          })
+          .catch((err) => {
+            res.status(401).json({ success: false, error: err })
+          })
+      } else next()
+    } catch (err) {
+      next(err)
+    }
+
+  })
+}
 function sendError(err, req, res) {
   let errorMessage = 'Error'
   let statusCode = 400

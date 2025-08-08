@@ -78,7 +78,14 @@ function post(dbModel, sessionDoc, req) {
       if (await dbModel.members.countDocuments({ organization: null, partner: sessionDoc.partner, username: data.username }) > 0)
         return reject(`username already exists`)
 
+      if (data.role) {
+        if (!['partnerUser', 'partnerAdmin'].includes(data.role))
+          return reject(`partner role is wrong`)
+      } else {
+        data.role = 'partnerUser'
+      }
       data.organization = null
+      data.partner = sessionDoc.partner
       const newDoc = new dbModel.members(data)
 
       newDoc.save()
@@ -98,9 +105,20 @@ function put(dbModel, sessionDoc, req) {
       if (req.params.param1 == undefined) return restError.param1(req, reject)
       let data = req.body || {}
       delete data._id
+      delete data.partner
 
       let doc = await dbModel.members.findOne({ organization: null, partner: sessionDoc.partner, _id: req.params.param1 })
       if (!doc) return reject(`member not found`)
+
+      if (data.role) {
+        if (!['partnerUser', 'partnerAdmin'].includes(data.role))
+          return reject(`partner role is wrong`)
+        if (doc.role != data.role && sessionDoc.member == doc._id) {
+          return reject(`you can not change your role`)
+        }
+
+      }
+
 
       data.organization = null
       doc = Object.assign(doc, data)

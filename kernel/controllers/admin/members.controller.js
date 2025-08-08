@@ -79,6 +79,7 @@ function post(dbModel, sessionDoc, req) {
         return reject(`username already exists`)
 
       data.organization = null
+      data.partner = null
       const newDoc = new dbModel.members(data)
 
       newDoc.save()
@@ -103,6 +104,7 @@ function put(dbModel, sessionDoc, req) {
       if (!doc) return reject(`member not found`)
 
       data.organization = null
+      data.partner = null
       doc = Object.assign(doc, data)
 
       if (await dbModel.members.countDocuments({ organization: null, partner: null, username: doc.username, _id: { $ne: doc._id } }) > 0)

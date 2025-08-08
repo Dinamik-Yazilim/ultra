@@ -9,14 +9,18 @@ export interface Store {
     responsibility?: string
     projectId?: string
     project?: string
-
     defaultFirmId?: string
     defaultFirm?: string
-
+    newFirm?:NewStoreFirm
     posIntegration?: PosIntegration
     passive?:boolean
 }
 
+export interface NewStoreFirm {
+    codePattern?:string
+    email?:string
+    accountingCode?:string
+}
 export interface PosIntegration {
     integrationType?: string | undefined | 'dinamikup' | 'pos312' | 'ingenico' | 'genius3'
     useMikroWorkData?: boolean

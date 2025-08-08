@@ -7,7 +7,7 @@ import { useLanguage } from "@/i18n"
 import { getList, postItem } from "@/lib/fetch"
 import { getPosIntegrationTypeList, Store } from "@/types/Store"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Cookies from 'js-cookie'
 import { ListGrid } from "@/components/ui216/list-grid"
 import { BanknoteIcon, BarcodeIcon, CircleArrowDown, ComputerIcon, Divide, Grid2x2PlusIcon, LucideUserSquare, MoveRightIcon, Package2Icon, RefreshCcwDotIcon, StoreIcon } from "lucide-react"
@@ -17,7 +17,7 @@ import { ButtonConfirm } from "@/components/button-confirm"
 
 interface Props {
 }
-export default function PosPage({ }: Props) {
+export default function PosPage({}: Props) {
   const [stores, setStores] = useState<Store[]>([])
   const [token, setToken] = useState('')
   const { toast } = useToast()
@@ -109,8 +109,13 @@ export default function PosPage({ }: Props) {
     </div >)
   }
 
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  
   useEffect(() => { !token && setToken(Cookies.get('token') || '') }, [])
   useEffect(() => { token && load() }, [token])
+  useEffect(() => { !busyItems && audioRef?.current && audioRef.current.play() }, [busyItems])
+  useEffect(() => { !busyFirms && audioRef?.current && audioRef.current.play() }, [busyFirms])
+
   return (
     <StandartForm
       title={t('POS Transactions')}
@@ -121,6 +126,7 @@ export default function PosPage({ }: Props) {
       <div className="flex flex-col gap-8 mt-6">
         {stores && stores.map(store => <div key={store._id}>{storePage(store)}</div>)}
       </div>
+      <audio ref={audioRef} src="/mp3/notification-1.mp3" />
     </StandartForm>
   )
 }

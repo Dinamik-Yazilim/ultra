@@ -124,9 +124,11 @@ export default function ConnectorPage() {
               setMainApp(e)
               switch (e) {
                 case 'mikro16':
+                case 'mikro16_workdata':
                   setConnector({ ...connector, mssql: { ...connector.mssql, database: 'MikroDB_V16' } })
                   break;
                 case 'mikro17':
+                case 'mikro17_workdata':
                   setConnector({ ...connector, mssql: { ...connector.mssql, database: 'MikroDesktop' } })
                   break;
               }

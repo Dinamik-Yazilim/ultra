@@ -24,7 +24,7 @@ const AppLayout: FC<AppLayoutProps> = ({ children }) => {
 
 
   return (
-    <div className="flex min-h-screen w-full flex-col px-2 dark:bg-[#030611] ">
+    <div className="flex min-h-screen w-full flex-col px-2 dark:bg-[#030611] "  >
       <Header />
       <div className="flex flex-row justify-between md:border border-dashed border-opacity-25 rounded-md border-yellow-400 " style={{ overflowWrap: 'anywhere' }}>
         <Sidebar className='hidden lg:flex' />
@@ -33,7 +33,6 @@ const AppLayout: FC<AppLayoutProps> = ({ children }) => {
         </div>
       </div>
       <div className='lg:mb-2'></div>
-      {/* <Footer /> */}
     </div>
   )
 

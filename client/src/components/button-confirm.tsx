@@ -33,7 +33,7 @@ export function ButtonConfirm({
 }: Props) {
   return (
     <AlertDialog >
-      <AlertDialogTrigger>
+      <AlertDialogTrigger className={`${className}`}>
         {children}
       </AlertDialogTrigger>
       <AlertDialogContent>

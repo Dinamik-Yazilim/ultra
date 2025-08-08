@@ -7,7 +7,7 @@ import { useLanguage } from "@/i18n"
 import { getList, postItem } from "@/lib/fetch"
 import { getPosIntegrationTypeList, Store } from "@/types/Store"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Cookies from 'js-cookie'
 import { BanknoteIcon, BarcodeIcon, CircleArrowDown, ComputerIcon, Divide, Grid2x2PlusIcon, MoveRightIcon, Package2Icon, RefreshCcwDotIcon, StoreIcon, WandSparklesIcon } from "lucide-react"
 import { ProgressBar } from "../../(components)/progressBar"
@@ -29,7 +29,8 @@ export default function PosGetSalesPage({ }: Props) {
   const [startDate,setStartDate]=useState(yesterday())
   const [endDate,setEndDate]=useState(yesterday())
   const [sonucSales, setSonucSales] = useState<any>({})
-
+  
+  
   const load = () => {
     setLoading(true)
     getList(`/stores`, token)
@@ -74,8 +75,12 @@ export default function PosGetSalesPage({ }: Props) {
     </div >)
   }
 
+  const audioRef=useRef<HTMLAudioElement | null>(null)
+
   useEffect(() => { !token && setToken(Cookies.get('token') || '') }, [])
   useEffect(() => { token && load() }, [token])
+  useEffect(() => { !busySales && audioRef?.current && audioRef.current.play() }, [busySales])
+
   return (
     <StandartForm
       title={'Mikro Aktarım'}
@@ -86,6 +91,7 @@ export default function PosGetSalesPage({ }: Props) {
       <div className="flex flex-col gap-8 mt-6">
         {stores && stores.map(store => <div key={store._id}>{storePage(store)}</div>)}
       </div>
+      <audio ref={audioRef} src="/mp3/notification-1.mp3" />
     </StandartForm>
   )
 }

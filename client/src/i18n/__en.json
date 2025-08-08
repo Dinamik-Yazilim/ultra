@@ -112,5 +112,9 @@
   "Purchase Report": "Purchase Report",
   "Sales transfer": "Sales transfer",
   "Integration Code": "Integration Code",
-  "Sales Serial":"Sales Serial"
+  "Sales Serial":"Sales Serial",
+  "Location":"Location",
+  "New Organization":"New Organization",
+  "Edit Organization":"Edit Organization",
+  "Do you want to connect to organization?":"Do you want to connect to organization?"
 }

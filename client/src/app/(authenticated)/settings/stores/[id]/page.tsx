@@ -13,7 +13,7 @@ import { TsnSwitch } from "@/components/ui216/tsn-switch"
 import { TsnPanel } from "@/components/ui216/tsn-panel"
 import { TsnSelect } from "@/components/ui216/tsn-select"
 import { SelectResponsibilityWithLabel } from "@/app/(authenticated)/(components)/select-responsibility"
-import {  SelectProjectWithLabel } from "@/app/(authenticated)/(components)/select-project"
+import { SelectProjectWithLabel } from "@/app/(authenticated)/(components)/select-project"
 import { PosIntegrationPos312 } from "./pos-integration-pos312"
 import { SelectWarehouseWithLabel } from "@/app/(authenticated)/(components)/select-warehouse"
 import { SelectFirmWithLabel } from "@/app/(authenticated)/(components)/select-firm"
@@ -92,15 +92,22 @@ export default function EditPage({ params }: Props) {
     loading={loading}
   >
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <TsnInput className="col-span-2" title={t('Name')} defaultValue={store?.name} onBlur={e => setStore({ ...store, name: e.target.value })} />
         <SelectFirmWithLabel caption={store?.defaultFirm} t={t} onSelect={e => { setStore({ ...store, defaultFirmId: e._id, defaultFirm: e.name }) }} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <SelectWarehouseWithLabel caption={store?.warehouse} t={t} onSelect={e => { setStore({ ...store, warehouseId: e._id, warehouse: e.name }) }} />
         <SelectProjectWithLabel caption={store?.project} t={t} onSelect={e => { setStore({ ...store, projectId: e._id, project: e.name }) }} />
         <SelectResponsibilityWithLabel caption={store?.responsibility} t={t} onSelect={e => { setStore({ ...store, responsibilityId: e._id, responsibility: e.name }) }} />
       </div>
+      <TsnPanel name='PosIntegrationIngenico' trigger={t('New Firm')} collapsible={false} >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <TsnInput title={t('Code Pattern')} defaultValue={store?.newFirm?.codePattern} onBlur={e => { setStore({ ...store, newFirm: { ...store?.newFirm, codePattern: e.target.value } }) }} />
+          <TsnInput title={t('Email')} type='email' defaultValue={store?.newFirm?.email} onBlur={e => { setStore({ ...store, newFirm: { ...store?.newFirm, email: e.target.value } }) }} />
+          <TsnInput title={t('Accounting Code')} defaultValue={store?.newFirm?.accountingCode} onBlur={e => { setStore({ ...store, newFirm: { ...store?.newFirm, accountingCode: e.target.value } }) }} />
+        </div>
+      </TsnPanel>
       <div className='flex flex-col ga-4 w-full max-w-3xl'>
         <TsnSelect
           list={getPosIntegrationTypeList()}
