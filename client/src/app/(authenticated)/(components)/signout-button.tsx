@@ -18,7 +18,7 @@ export function SignOutButton() {
   const router = useRouter()
   const { t } = useLanguage()
   const [user, setUser] = useState<Member>()
-  const {toast}=useToast()
+  const { toast } = useToast()
   useEffect(() => {
     try {
       if (!user) {
@@ -31,24 +31,35 @@ export function SignOutButton() {
     {user &&
       <Button variant={'outline'}
         onClick={() => {
-          if (!user.role?.startsWith('sys') || user.role?.startsWith('sys') && !user.organization) {
+          if (!(user.role?.startsWith('sys') && user.role?.startsWith('partner'))
+            || user.role?.startsWith('sys') && !user.organization && !user.partner
+            || user.role?.startsWith('partner') && !user.organization) {
             if (confirm(t('Do you want to exit?'))) {
               Cookies.remove('token')
               Cookies.remove('user')
               Cookies.remove('db')
               Cookies.remove('dbList')
               setTimeout(() => {
-                location.href='/auth/login'
+                location.href = '/auth/login'
               }, 300)
             }
           } else {
             let u = user
-            u.organization = null
-            Cookies.set('user',JSON.stringify(u))
-            toast({title:t(`Logging out from organization`),description:user?.organization?.name?.toUpperCase(), duration:1000})
-            setTimeout(() => {
-              location.href='/admin/organizations'
-            }, 1100)
+            if ((u.role?.startsWith('sys') || u.role?.startsWith('partner')) && u.organization) {
+              u.organization = null
+              Cookies.set('user', JSON.stringify(u))
+              toast({ title: t(`Logging out from organization`), description: user?.organization?.name?.toUpperCase(), duration: 1000 })
+              setTimeout(() => {
+                location.href = '/_partner/organizations'
+              }, 1100)
+            }else if (u.role?.startsWith('sys')  && u.partner) {
+              u.partner = null
+              Cookies.set('user', JSON.stringify(u))
+              toast({ title: t(`Logging out from partner`), description: user?.partner?.name?.toUpperCase(), duration: 1000 })
+              setTimeout(() => {
+                location.href = '/_admin/partners'
+              }, 1100)
+            }
           }
         }}
       >

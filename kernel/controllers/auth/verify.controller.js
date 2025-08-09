@@ -29,6 +29,9 @@ module.exports = (req) =>
 			if (!memberDoc.organization && !memberDoc.partner && !memberDoc.role.startsWith('sys'))
 				return reject(`permission denied`)
 
+			if (!memberDoc.organization && memberDoc.partner && !memberDoc.role.startsWith('partner'))
+				return reject(`permission denied`)
+
 			if (memberDoc.partner) {
 				partnerDoc = await db.partners.findOne({ _id: memberDoc.partner })
 				if (!partnerDoc) return reject(`partner not found`)

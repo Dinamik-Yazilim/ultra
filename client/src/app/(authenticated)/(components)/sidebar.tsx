@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Settings, Users, ShoppingCart, BarChart, FileText, Mail, Bell, HelpCircle, CheckCircle2Icon, ChartAreaIcon, TruckIcon, ShoppingCartIcon, ComputerIcon, Users2Icon, Building2Icon } from "lucide-react"
+import { Home, Settings, Users, ShoppingCart, BarChart, FileText, Mail, Bell, HelpCircle, CheckCircle2Icon, ChartAreaIcon, TruckIcon, ShoppingCartIcon, ComputerIcon, Users2Icon, Building2Icon, TabletSmartphoneIcon, HandshakeIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -40,84 +40,23 @@ function menuItems(t: (s: string) => string, user: Member) {
       href: "/",
     },
     {
-      title: t('Purchase'),
-      icon: <TruckIcon className="h-5 w-5" />,
-      submenu: [
-        { title: t('Inventory'), href: "/purchase/inventory" },
-        { title: t('Vendors'), href: "/module-closed/vendors" },
-        { title: t('Purchase Orders'), href: "/purchase/orders" },
-        { title: t('Purchase Conditions'), href: "/purchase/conditions" },
-      ],
-    },
-    // {
-    //   title: t('Sales'),
-    //   icon: <ShoppingCartIcon className="h-5 w-5" />,
-    //   submenu: [
-    //     { title: "Reports", href: "/module-closed/reports" },
-    //     { title: "Sales", href: "/module-closed/sales" },
-    //   ],
-    // },
-    {
-      title: t('POS'),
-      icon: <ComputerIcon className="h-5 w-5" />,
-      submenu: [
-        { title: "POS Güncelle", href: "/pos/transactions" },
-        { title: "Mikro Aktarim", href: "/pos/syncSales" },
-      ],
+      title: t('Devices'),
+      icon: <TabletSmartphoneIcon className="h-5 w-5" />,
+      href: "/devices",
     },
     {
       title: t('Reports'),
       icon: <ChartAreaIcon className="h-5 w-5" />,
       submenu: [
-        // { title: t('Sales Profit'), href: "/reports/sales-profit" },
-        { title: "Satın Alma Raporu", href: "/reports/purchase" },
-        { title: "Satış Devir Hızı", href: "/module-closed/sales-cycle" },
-        { title: "Satış Raporu", href: "/module-closed/satis-raporu" },
-        { title: "Saatlik Satış Raporu", href: "/module-closed/saatlik-satis-raporu" },
-        { title: "Günlük Ciro", href: "/module-closed/gunluk-ciro" },
-        { title: "Aylık Ciro", href: "/module-closed/aylik-ciro" },
-        { title: "Mağaza Masrafları", href: "/module-closed/magaza-masraflari" },
-        { title: "Envanter", href: "/module-closed/envanter" },
-        { title: "Tedarikçiye Göre Satış Raporu", href: "/module-closed/tedarikciye-gore-satis-raporu" },
-        { title: "Tedarikçiye Göre Sipariş Karşılama", href: "/module-closed/tedarikciye-gore-siparis-karsilama" },
-        { title: "Satın Almaya Göre Satış Raporu", href: "/module-closed/satin-almaya-gore-satis-raporu" },
-        { title: "Nakit Akış", href: "/module-closed/nakit-akis" },
-        { title: "Müşteri Satış Raporu", href: "/module-closed/musteri-satis-raporu" },
-        { title: "Ürün Satış Raporu", href: "/module-closed/urun-satis-raporu" },
-        { title: "Belge Bazlı Ürün Raporu", href: "/module-closed/belge-bazli-urun-raporu" },
-        { title: "İade Nedenleri", href: "/module-closed/iade-nedenleri" },
-        { title: "Fire Raporu", href: "/module-closed/fire-raporu" },
-        { title: "KDV Bazlı Satış Raporu", href: "/module-closed/kdv-bazli-satis-raporu" },
-        { title: "Ürün Stok Durumu", href: "/module-closed/urun-stok-durumu" },
-        { title: "Market Sipariş Raporu", href: "/module-closed/market-siparis-raporu" },
-        { title: "Depo Sipariş Raporu", href: "/module-closed/depo-siparis-raporu" },
-        { title: "Günlük Kasa Defteri", href: "/module-closed/gunluk-kasa-defteri" },
-        { title: "İndirimler Raporu", href: "/module-closed/indirimler-raporu" },
-        { title: "Fiyat Değişim Raporu", href: "/module-closed/fiyat-degisim-raporu" },
-        { title: "Marj Raporu", href: "/module-closed/marj-raporu" },
-      ],
-    },
-    {
-      title: t('Notifications'),
-      icon: <Bell className="h-5 w-5" />,
-      href: "/notifications",
-    },
-    {
-      title: t('Settings'),
-      icon: <Settings className="h-5 w-5" />,
-      submenu: [
-        { title: t('Users'), href: "/settings/users" },
-        { title: t('Connector'), href: "/settings/connector" },
-        { title: t('Stores'), href: "/settings/stores" },
-        { title: t('POS Computers'), href: "/settings/posComputers" },
-        { title: t('Working Parameters'), href: "/settings/workingParams" },
+        { title: "Cihaz Hareketleri", href: "/module-closed/cihaz-hareketleri" },
+       
       ],
     },
   ]
   return l
 }
 
-function adminMenu(t: (s: string) => string, user: Member) {
+function partnerMenu(t: (s: string) => string, user: Member) {
   let l = [
     {
       title: t('Dashboard'),
@@ -127,7 +66,31 @@ function adminMenu(t: (s: string) => string, user: Member) {
     {
       title: t('Organizations'),
       icon: <Building2Icon className="h-5 w-5" />,
-      href: '/admin/organizations'
+      href: '/partner/organizations',
+    }
+  ]
+  if (user.role == 'partnerAdmin' || user.role?.startsWith('sys')) {
+    l.push({
+      title: t('Partner Users'),
+      icon: <Users2Icon className="h-5 w-5" />,
+      href: "/partner/partnerUsers",
+    })
+  }
+  return l
+}
+
+
+function adminMenu(t: (s: string) => string, user: Member) {
+  let l = [
+    {
+      title: t('Dashboard'),
+      icon: <Home className="h-5 w-5" />,
+      href: "/",
+    },
+    {
+      title: t('Partners'),
+      icon: <HandshakeIcon className="h-5 w-5" />,
+      href: '/admin/partners',
     }
   ]
   if (user.role == 'sysadmin') {
@@ -170,11 +133,6 @@ export function Sidebar({ className }: Props) {
     })
   }
 
-  // Ensure parent accordion is open if a child is active
-  const ensureParentOpen = () => {
-
-  }
-
 
   useEffect(() => {
     try {
@@ -185,7 +143,15 @@ export function Sidebar({ className }: Props) {
   }, [])
   useEffect(() => {
     if (user) {
-      const m: MenuItem[] = user.organization ? menuItems(t, user) : adminMenu(t, user)
+      let m: MenuItem[] = []
+      if(user.role?.startsWith('partner') || user.role?.startsWith('sys') && user.partner && !user.organization) {
+        m = partnerMenu(t, user)
+      }else if (user.role?.startsWith('sys') && !user.partner && !user.organization) {
+        m = adminMenu(t, user)
+      }else {
+        m = menuItems(t, user)
+      }
+
       m.forEach((item, index) => {
         if (item.submenu) {
           const hasActiveChild = item.submenu.some((subItem) => isActive(subItem.href))
@@ -205,6 +171,15 @@ export function Sidebar({ className }: Props) {
 
   return (
     <div className={`w-64 min-h-screen border-r flex flex-col ${className}`}>
+      {!user?.organization && user?.partner &&
+        <div className="flex justify-between items-center border-b mb-1 bg-gr11een-600 text-blue-600 px-2 py-1 font-bold">
+          <div className="flex gap-2">
+            <HandshakeIcon />
+            {user?.partner?.name?.toUpperCase()}
+          </div>
+          <SignOutButton />
+        </div>
+      }
       {user?.organization &&
         <div className="flex justify-between items-center border-b mb-1 bg-gr11een-600 text-green-600 px-2 py-1 font-bold">
           <div className="flex gap-2">

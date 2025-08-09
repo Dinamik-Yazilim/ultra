@@ -20,6 +20,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState(Cookies.get('login_last_username') || '')
   const [organization, setOrganization] = useState(Cookies.get('login_last_organization') || '')
+  const [partner, setPartner] = useState(Cookies.get('login_last_partner') || '')
   const { toast } = useToast()
   const deviceId = Cookies.get('deviceId') || ''
   const login = () => {
@@ -27,10 +28,12 @@ export default function LoginPage() {
       postItem(`/auth/login`, '', {
         username: username,
         deviceId: deviceId,
+        partner: partner,
         organization: organization,
       })
         .then(result => {
           Cookies.set('login_last_username', username)
+          Cookies.set('login_last_partner', partner)
           Cookies.set('login_last_organization', organization)
           console.log('login result:', result)
           router.push(`/auth/login/verify?username=${username}`)
@@ -55,8 +58,17 @@ export default function LoginPage() {
       <div className="flex justify-center">
         <HeaderLogo2 className='w-40' />
       </div>
-      <div className="flex flex-col justify-between gap-4 w-full h-full  mb-6 text-2xl max-w-[350px] max-h-[240px]  rounded-lg border border-dashed border-opacity-50 border-slate-400 p-4">
+      <div className="flex flex-col justify-between gap-4 w-full h-full  mb-6 text-2xl max-w-[350px] max-h-[280px]  rounded-lg border border-dashed border-opacity-50 border-slate-400 p-4">
         <div className="flex flex-col gap-6 ">
+          <div className="flex flex-col gap-2 ">
+            <Label className="ms-2">{t('Partner')}</Label>
+            <Input
+              defaultValue={partner}
+              placeholder={t('Partner')}
+              onChange={e => setPartner(e.target.value)}
+            />
+          </div>
+
           <div className="flex flex-col gap-2 ">
             <Label className="ms-2">{t('Organization')}</Label>
             <Input

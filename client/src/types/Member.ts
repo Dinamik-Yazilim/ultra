@@ -1,7 +1,9 @@
 import { Organization } from "./Organization"
+import { Partner } from "./Partner"
 
 export interface Member {
   _id?: string
+  partner?:Partner | null
   organization?:Organization | null
   username?: string
   name?: string

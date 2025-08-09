@@ -3,6 +3,7 @@ module.exports = function (dbModel) {
   const schema = mongoose.Schema(
     {
       name: { type: String, unique: true },
+      location: { type: String, default: '', index: true },
       billingInfo: {
         individual: { type: Boolean, default: false, index: true },
         companyName: { type: String, default: '', index: true },

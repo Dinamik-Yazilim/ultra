@@ -7,7 +7,8 @@ export const HeaderLogo2 = ({
 }: { className?: string }) => {
   return (
     <div className={`flex flex-row text-xl items-center m11ax-h-12 font-semibold  ${className}`}>
-      <img src="/img/logo.png" alt="logo" className="" />
+      {/* <img src="/img/logo.png" alt="logo" className="" /> */}
+      ULTRA
     </div>
   )
 }

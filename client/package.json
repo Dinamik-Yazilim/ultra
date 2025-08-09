@@ -1,18 +1,18 @@
 {
-  "name": "trendsenfoni-webapp",
+  "name": "ultra-webapp",
   "version": "0.1.0",
   "private": false,
-  "description": "TrendSenfoni Web App",
+  "description": "DinamikUp Ultra Web App",
   "homepage": "https://aliabi.org",
-  "repository": "https://github.com/trendsenfoni/tsn-client",
+  "repository": "https://github.com/Dinamik-Yazilim/ultra",
   "bugs": {
-    "url": "https://github.com/trendsenfoni/tsn-client/issues"
+    "url": "https://github.com/Dinamik-Yazilim/ultra/issues"
   },
   "author": "Ali TEK <alitek@gmail.com>",
   "scripts": {
-    "dev": "next dev -p 6300",
+    "dev": "next dev -p 6400",
     "build": "next build",
-    "start": "next start -p 6300",
+    "start": "next start -p 6400",
     "lint": "next lint"
   },
   "dependencies": {

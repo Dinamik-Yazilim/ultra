@@ -4,6 +4,7 @@ module.exports = function (dbModel) {
     {
       partner: { type: ObjectId, ref: 'partners', index: true },
       name: { type: String, required: true, index: true },
+      location: { type: String, default: '', index: true },
       billingInfo: {
         individual: { type: Boolean, default: false, index: true },
         companyName: { type: String, default: '', index: true },
